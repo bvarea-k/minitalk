@@ -22,7 +22,9 @@ si_pid es un pid_t de signation.
 sigemptyset inicializa un set de señales vacío. ¿¿LO USO??
 ¿CON SA_MASK? sa_mask specifies a mask of signals which should be blocked.
 Si no quiero bloquear señales, mejor lo uso?????
-sigaddset añade la señal indicada al set*/
+sigaddset añade la señal indicada al set.
+
+El valor por defecto de las variables estáticas es 0.*/
 
 
 void	handler(int sig, siginfo_t *info, void *context)
@@ -40,12 +42,10 @@ void handler(int sig, siginfo_t *info, void *context)
     static int bit_nbr; //bit en el que estoy
     static unsigned char c; //bits recibidos
 
-    bit_nbr = 0;
-    c = 0;
     (void)context; //No lo uso, me lo cargo como en el examen.
-    if (sig == SIGUSR1)
-        c = c | (0 << (7 - bit_nbr)); //Esto no hace nada. Me lo podría comer, creo.
-    else if (sig == SIGUSR2)
+    /*if (sig == SIGUSR1)
+        c = c | (0 << (7 - bit_nbr)); Esto no hace nada. Me lo podría comer, creo.
+    else */if (sig == SIGUSR2)
         c = c | (1 << (7 - bit_nbr));
     bit_nbr++;
     if (bit_nbr == 8) //Cuando ha pasado el caracter entero, bit a bit (nbr = 8), Si he llegado al final del mensaje, hago un salto de línea.
@@ -55,8 +55,8 @@ void handler(int sig, siginfo_t *info, void *context)
             write(1, "\n", 1);
         else
             write(1, &c, 1);
-        c = 0;
         bit_nbr = 0;
+        c = 0;
     }
 
     kill(info->si_pid, SIGUSR1);
@@ -65,12 +65,31 @@ void handler(int sig, siginfo_t *info, void *context)
 
 int main(void)
 {
+    struct sigaction sa;
+
     ft_printf("SERVER PID = %d\n", getpid());
     sa.sa_sigaction = handler;
     sa.sa_flags = SA_SIGINFO;
-    /*sigemptyset(&sa.sa_mask)???????*/
+    sigemptyset(&sa.sa_mask); //Para no bloquear ninguna señal. CREO!!!!!
 
     sigaction(SIGUSR1, &sa, NULL);
     sigaction(SIGUSR2, &sa, NULL);
+    while (1)
+        pause(); //bucle infinito. Era eso lo que me dijo la veterana?
     return (EXIT_SUCCESS);
 }
+
+/*The sigaction structure is defined as something like:
+
+           struct sigaction {
+               void     (*sa_handler)(int);
+               void     (*sa_sigaction)(int, siginfo_t *, void *);
+               sigset_t   sa_mask;
+               int        sa_flags;
+               void     (*sa_restorer)(void);
+           };
+Es la que indica cómo actuar cuando un proceso recibe una señal.
+
+
+
+           */
