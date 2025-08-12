@@ -64,11 +64,6 @@ int	main(int ac, char **av)
 	return (EXIT_SUCCESS);
 }*/
 
-#include <signal.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
-
 void	signal_handler(int signum)
 {
 	(void)signum;
@@ -102,8 +97,7 @@ int	main(int ac, char **av)
 		write(2, "ERROR: invalid number of params\n", 32);
 		exit(EXIT_FAILURE);
 	}
-	pid = atoi(av[1]);
-	if (pid <= 0)
+	if ((pid = ft_atoi(av[1])) <= 0)
 	{
 		write(2, "ERROR: Invalid PID\n", 19);
 		exit(EXIT_FAILURE);
