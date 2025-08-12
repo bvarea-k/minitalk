@@ -20,6 +20,7 @@
 # include <string.h>
 # include <stdarg.h>
 # include <fcntl.h>
+# include <limits.h>
 
 # ifndef BUFFER_SIZE
 #  define BUFFER_SIZE 10
