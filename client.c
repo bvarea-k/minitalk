@@ -6,137 +6,85 @@
 /*   By: bvarea-k <bvarea-k@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/12 09:25:50 by bvarea-k          #+#    #+#             */
-/*   Updated: 2025/08/12 13:07:56 by bvarea-k         ###   ########.fr       */
+/*   Updated: 2025/08/12 13:56:44 by bvarea-k         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-/*void	signal_handler(int signum)
-{
-	(void)signum;
-}
-
-void	send_msg(int pid, char msg_char)
-{
-	short	bit;
-
-	bit = 7;
-	while (bit >= 0)
-	{
-		if ((msg_char >> bit) & 1)
-			kill(pid, SIGUSR2);
-		else
-			kill(pid, SIGUSR1);
-		printf("voy a pasar el bit %i\n", bit);
-		pause();
-		bit--;
-	}
-}
-
-int	main(int ac, char **av)
-{
-	int					pid;
-	char				*msg;
-	int					i;
-	struct sigaction	sa;
-
-	if (ac != 3)
-	{
-		ft_printf("ERROR: invalid number of params");
-		exit(EXIT_FAILURE);
-	}
-	pid = ft_atoi(av[1]);
-	if (pid <= 0)
-	{
-		ft_printf("ERROR: Invalid PID\n");
-		exit(EXIT_FAILURE);
-	}
-	sa.sa_handler = signal_handler;
-    sa.sa_flags = 0;
-    sigemptyset(&sa.sa_mask);
-    sigaction(SIGUSR1, &sa, NULL);
-	msg = av[2];
-	i = 0;
-	while (msg[i])
-		send_msg(pid, msg[i++]);
-	send_msg(pid, '\0');
-	return (EXIT_SUCCESS);
-}*/
+volatile sig_atomic_t	g_ack_received = 0;
 
 void	signal_handler(int signum)
 {
 	(void)signum;
+	g_ack_received = 1;
 }
 
-void	send_msg(int pid, char msg_char)
+static void	send_char(int pid, char c)
 {
-	short	bit;
+	int			bit;
+	sigset_t	oldmask;
 
 	bit = 7;
 	while (bit >= 0)
 	{
-		if ((msg_char >> bit) & 1)
+		g_ack_received = 0;
+		if ((c >> bit) & 1)
 			kill(pid, SIGUSR2);
 		else
 			kill(pid, SIGUSR1);
-		pause();
+		while (!g_ack_received)
+			sigsuspend(&oldmask);
 		bit--;
 	}
 }
 
-int	main(int ac, char **av)
+static void	validate_argc(int num)
 {
-	int					pid;
-	char				*msg;
-	int					i;
-	struct sigaction	sa;
-
-	if (ac != 3)
+	if (num != 3)
 	{
-		write(2, "ERROR: invalid number of params\n", 32);
+		write(2, "Usage: ./client [PID] [MESSAGE]\n", 32);
 		exit(EXIT_FAILURE);
 	}
-	if ((pid = ft_atoi(av[1])) <= 0)
-	{
-		write(2, "ERROR: Invalid PID\n", 19);
-		exit(EXIT_FAILURE);
-	}
-	sa.sa_handler = signal_handler;
-	sa.sa_flags = 0;
-	sigemptyset(&sa.sa_mask);
-	sigaction(SIGUSR1, &sa, NULL);
-	msg = av[2];
-	i = 0;
-	while (msg[i])
-		send_msg(pid, msg[i++]);
-	send_msg(pid, '\0');
-	return (0);
 }
 
-/*int	main(int ac, char **av)
+static void	setup_sigaction(struct sigaction *sa)
+{
+	sa->sa_handler = signal_handler;
+	sa->sa_flags = SA_RESTART;
+	sigemptyset(&sa->sa_mask);
+	if (sigaction(SIGUSR1, sa, NULL) == -1)
+	{
+		write(2, "ERROR: sigaction failed\n", 24);
+		exit(EXIT_FAILURE);
+	}
+}
+
+int	main(int argc, char **argv)
 {
 	int					pid;
 	char				*msg;
-	int					i;
 	struct sigaction	sa;
+	sigset_t			block_mask;
+	int					i;
 
-	if (ac != 3)
+	i = 0;
+	validate_argc(argc);
+	pid = validate_pid(argv[1]);
+	msg = argv[2];
+	sa.sa_handler = signal_handler;
+	sa.sa_flags = SA_RESTART;
+	sigemptyset(&sa.sa_mask);
+	setup_sigaction(&sa);
+	sigemptyset(&block_mask);
+	sigaddset(&block_mask, SIGUSR1);
+	if (sigprocmask(SIG_BLOCK, &block_mask, NULL) == -1)
 	{
-		ft_printf("ERROR: invalid number of params\n");
+		write(2, "ERROR: sigprocmask failed\n", 26);
 		exit(EXIT_FAILURE);
 	}
-	sa.sa_handler = signal_handler;
-	sa.sa_flags = 0;
-	sigemptyset(&sa.sa_mask);
-	if (sigaction(SIGUSR1, &sa, NULL) == -1 || sigaction(SIGUSR2, &sa, NULL) == -1)
-		exit(EXIT_FAILURE);
-	if ((pid = ft_atoi(av[1])) <= 0)
-		exit(EXIT_FAILURE);
-	msg = av[2];
-	i = -1;
-	while (msg[++i])
-		send_msg(pid, msg[i]);
-	send_msg(pid, '\0');
-	return (EXIT_SUCCESS);
-}*/
+	while (msg[i])
+		send_char(pid, msg[i++]);
+	send_char(pid, '\0');
+	return (0);
+}

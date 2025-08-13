@@ -33,13 +33,6 @@ int	ft_atoi(const char *nptr)
 		pos++;
 	while (nptr[pos] != '\0' && (nptr[pos] >= '0' && nptr[pos] <= '9'))
 	{
-		if (num > (INT_MAX / 10) || (num == (INT_MAX / 10) && (nptr[pos] - '0') > INT_MAX % 10))
-        {
-            if (s == 1)
-                return (INT_MAX);
-            else
-                return (INT_MIN);
-        }
 		num = (num * 10) + (nptr[pos] - '0');
 		pos++;
 	}

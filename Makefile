@@ -31,7 +31,8 @@ LIBFT = $(LIBFT_DIR)libft.a
 
 INCLUDES = -I ./ -I $(LIBFT_DIR)
 
-FILES_CLIENT = client
+FILES_CLIENT = client \
+				utils_client
 FILES_SERVER = server
 
 SRC_DIR = ./

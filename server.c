@@ -12,7 +12,7 @@
 
 #include "minitalk.h"
 
-void	handler(int sig, siginfo_t *info, void *context)
+static void	handler(int sig, siginfo_t *info, void *context)
 {
 	static int				bit_nbr;
 	static unsigned char	c;
@@ -38,13 +38,23 @@ int	main(void)
 {
 	struct sigaction	sa;
 
-	ft_printf("SERVER PID = %d\n", getpid());
+	printf("SERVER PID = %d\n", getpid());
 	sa.sa_sigaction = handler;
 	sa.sa_flags = SA_SIGINFO;
 	sigemptyset(&sa.sa_mask);
-	sigaction(SIGUSR1, &sa, NULL);
-	sigaction(SIGUSR2, &sa, NULL);
+	sigaddset(&sa.sa_mask, SIGUSR1);
+	sigaddset(&sa.sa_mask, SIGUSR2);
+	if (sigaction(SIGUSR1, &sa, NULL) == -1)
+	{
+		write(2, "Error setting SIGUSR1 handler\n", 30);
+		exit(EXIT_FAILURE);
+	}
+	if (sigaction(SIGUSR2, &sa, NULL) == -1)
+	{
+		write(2, "Error setting SIGUSR2 handler\n", 30);
+		exit(EXIT_FAILURE);
+	}
 	while (1)
 		pause();
-	return (EXIT_SUCCESS);
+	return (0);
 }

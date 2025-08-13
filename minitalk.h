@@ -17,8 +17,10 @@
 # include <stdlib.h>
 # include <signal.h>
 # include "libft.h"
+# include <stdio.h>
 
 void	send_msg(int pid, char msg_char);
-void	handler(int sig, siginfo_t *info, void *context);
+int		validate_pid(char *str);
+int		validate_pid(char *str);
 
 #endif
