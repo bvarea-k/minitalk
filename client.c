@@ -23,8 +23,10 @@ void	signal_handler(int signum)
 static void	send_char(int pid, char c)
 {
 	int			bit;
-	sigset_t	oldmask;
+	sigset_t	suspend_mask;
 
+	sigfillset(&suspend_mask);
+	sigdelset(&suspend_mask, SIGUSR1);
 	bit = 7;
 	while (bit >= 0)
 	{
@@ -34,7 +36,7 @@ static void	send_char(int pid, char c)
 		else
 			kill(pid, SIGUSR1);
 		while (!g_ack_received)
-			sigsuspend(&oldmask);
+			sigsuspend(&suspend_mask);
 		bit--;
 	}
 }
