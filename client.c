@@ -90,3 +90,37 @@ int	main(int argc, char **argv)
 	send_char(pid, '\0');
 	return (0);
 }
+
+
+/* ¿podría?
+int	main(int argc, char **argv)
+{
+	int					pid;
+	char				*msg;
+	struct sigaction	sa;
+	sigset_t			block_mask;
+	int					i;
+
+	i = 0;
+	validate_argc(argc);
+	pid = validate_pid(argv[1]);
+	msg = argv[2];
+
+	setup_sigaction(&sa);  // Configuramos el handler solo una vez
+
+	sigemptyset(&block_mask);
+	sigaddset(&block_mask, SIGUSR1);
+	if (sigprocmask(SIG_BLOCK, &block_mask, NULL) == -1)
+	{
+		write(2, "ERROR: sigprocmask failed\n", 26);
+		exit(EXIT_FAILURE);
+	}
+
+	while (msg[i])
+		send_char(pid, msg[i++]);
+	send_char(pid, '\0');
+
+	return (0);
+}
+
+*/
