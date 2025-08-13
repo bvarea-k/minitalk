@@ -145,3 +145,24 @@ static void	send_char(int pid, char c)
 }
 
 */
+
+/* tercerca opción
+int main(int argc, char **argv)
+{
+    int pid;
+    char *msg;
+    struct sigaction sa;
+    int i = 0;
+
+    validate_argc(argc);
+    pid = atoi(argv[1]);
+    msg = argv[2];
+
+    setup_sigaction(&sa);  // Configuramos el handler solo una vez
+
+    while (msg[i])
+        send_char(pid, msg[i++]);  // Enviar cada carácter como bits
+    send_char(pid, '\0');  // Enviar el carácter nulo al final
+
+    return 0;
+}*/
