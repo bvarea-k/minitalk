@@ -34,11 +34,23 @@ static void	handler(int sig, siginfo_t *info, void *context)
 	kill(info->si_pid, SIGUSR1);
 }
 
+static void	ft_putnbr(int n)
+{
+	char	c;
+
+	if (n >= 10)
+		ft_putnbr(n / 10);
+	c = '0' + (n % 10);
+	write(1, &c, 1);
+}
+
 int	main(void)
 {
 	struct sigaction	sa;
 
-	printf("SERVER PID = %d\n", getpid());
+	write(1, "SERVER PID = ", 13);
+	ft_putnbr(getpid());
+	write(1, "\n", 1);
 	sa.sa_sigaction = handler;
 	sa.sa_flags = SA_SIGINFO;
 	sigemptyset(&sa.sa_mask);
