@@ -123,4 +123,25 @@ int	main(int argc, char **argv)
 	return (0);
 }
 
+static void	send_char(int pid, char c)
+{
+	int	bit;
+
+	bit = 7;
+	while (bit >= 0)
+	{
+		g_ack_received = 0;
+
+		if ((c >> bit) & 1)
+			kill(pid, SIGUSR2);  // Enviar bit 1
+		else
+			kill(pid, SIGUSR1);  // Enviar bit 0
+
+		while (!g_ack_received)
+			pause();  // Esperar confirmación del servidor
+
+		bit--;
+	}
+}
+
 */
