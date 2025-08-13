@@ -43,7 +43,7 @@ static void	validate_argc(int num)
 {
 	if (num != 3)
 	{
-		write(2, "Usage: ./client [PID] [MESSAGE]\n", 32);
+		write(2, "Error. Enter: ./client [PID] [MESSAGE]\n", 39);
 		exit(EXIT_FAILURE);
 	}
 }
