@@ -19,8 +19,6 @@
 # include "libft.h"
 # include <stdio.h>
 
-void	send_msg(int pid, char msg_char);
-int		validate_pid(char *str);
 int		validate_pid(char *str);
 
 #endif

@@ -14,7 +14,7 @@
 
 volatile sig_atomic_t	g_ack_received = 0;
 
-void	signal_handler(int signum)
+static void	signal_handler(int signum)
 {
 	(void)signum;
 	g_ack_received = 1;
@@ -23,10 +23,8 @@ void	signal_handler(int signum)
 static void	send_char(int pid, char c)
 {
 	int			bit;
-	sigset_t	suspend_mask;
+	int			wait;
 
-	sigfillset(&suspend_mask);
-	sigdelset(&suspend_mask, SIGUSR1);
 	bit = 7;
 	while (bit >= 0)
 	{
@@ -35,8 +33,9 @@ static void	send_char(int pid, char c)
 			kill(pid, SIGUSR2);
 		else
 			kill(pid, SIGUSR1);
-		while (!g_ack_received)
-			sigsuspend(&suspend_mask);
+		wait = 0;
+		while (!g_ack_received && wait++ < 10000)
+			usleep(100);
 		bit--;
 	}
 }
@@ -67,102 +66,15 @@ int	main(int argc, char **argv)
 	int					pid;
 	char				*msg;
 	struct sigaction	sa;
-	sigset_t			block_mask;
 	int					i;
 
 	i = 0;
 	validate_argc(argc);
 	pid = validate_pid(argv[1]);
 	msg = argv[2];
-	sa.sa_handler = signal_handler;
-	sa.sa_flags = SA_RESTART;
-	sigemptyset(&sa.sa_mask);
 	setup_sigaction(&sa);
-	sigemptyset(&block_mask);
-	sigaddset(&block_mask, SIGUSR1);
-	if (sigprocmask(SIG_BLOCK, &block_mask, NULL) == -1)
-	{
-		write(2, "ERROR: sigprocmask failed\n", 26);
-		exit(EXIT_FAILURE);
-	}
 	while (msg[i])
 		send_char(pid, msg[i++]);
 	send_char(pid, '\0');
 	return (0);
 }
-
-
-/* ¿podría?
-int	main(int argc, char **argv)
-{
-	int					pid;
-	char				*msg;
-	struct sigaction	sa;
-	sigset_t			block_mask;
-	int					i;
-
-	i = 0;
-	validate_argc(argc);
-	pid = validate_pid(argv[1]);
-	msg = argv[2];
-
-	setup_sigaction(&sa);  // Configuramos el handler solo una vez
-
-	sigemptyset(&block_mask);
-	sigaddset(&block_mask, SIGUSR1);
-	if (sigprocmask(SIG_BLOCK, &block_mask, NULL) == -1)
-	{
-		write(2, "ERROR: sigprocmask failed\n", 26);
-		exit(EXIT_FAILURE);
-	}
-
-	while (msg[i])
-		send_char(pid, msg[i++]);
-	send_char(pid, '\0');
-
-	return (0);
-}
-
-static void	send_char(int pid, char c)
-{
-	int	bit;
-
-	bit = 7;
-	while (bit >= 0)
-	{
-		g_ack_received = 0;
-
-		if ((c >> bit) & 1)
-			kill(pid, SIGUSR2);  // Enviar bit 1
-		else
-			kill(pid, SIGUSR1);  // Enviar bit 0
-
-		while (!g_ack_received)
-			pause();  // Esperar confirmación del servidor
-
-		bit--;
-	}
-}
-
-*/
-
-/* tercerca opción
-int main(int argc, char **argv)
-{
-    int pid;
-    char *msg;
-    struct sigaction sa;
-    int i = 0;
-
-    validate_argc(argc);
-    pid = atoi(argv[1]);
-    msg = argv[2];
-
-    setup_sigaction(&sa);  // Configuramos el handler solo una vez
-
-    while (msg[i])
-        send_char(pid, msg[i++]);  // Enviar cada carácter como bits
-    send_char(pid, '\0');  // Enviar el carácter nulo al final
-
-    return 0;
-}*/

@@ -34,14 +34,31 @@ static void	handler(int sig, siginfo_t *info, void *context)
 	kill(info->si_pid, SIGUSR1);
 }
 
-static void	ft_putnbr(int n)
+void	ft_putnbr(int n)
 {
-	char	c;
+	char	buffer[12];
+	int		i;
+	long	num;
 
-	if (n >= 10)
-		ft_putnbr(n / 10);
-	c = '0' + (n % 10);
-	write(1, &c, 1);
+	num = n;
+	if (num == 0)
+	{
+		write(1, "0", 1);
+		return ;
+	}
+	if (num < 0)
+	{
+		write(1, "-", 1);
+		num = -num;
+	}
+	i = 10;
+	buffer[11] = '\0';
+	while (num > 0)
+	{
+		buffer[i--] = '0' + (num % 10);
+		num /= 10;
+	}
+	write(1, &buffer[i + 1], 10 - i);
 }
 
 int	main(void)
