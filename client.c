@@ -12,6 +12,10 @@
 
 #include "minitalk.h"
 
+//Necesito variable global para que cambie en cualquier momento del programa.
+//Es volatile para indicar que puede cambiar de forma inesperada, para que el programa la lea cada vez que la use.
+//Es sig_atomic_t para garantizar que su lectura y escritura sean atómicas (no se corten por la mitad).
+
 volatile sig_atomic_t	g_ack_received = 0;
 
 static void	signal_handler(int signum)
@@ -51,9 +55,9 @@ static void	validate_argc(int num)
 
 static void	setup_sigaction(struct sigaction *sa)
 {
-	sa->sa_handler = signal_handler;
-	sa->sa_flags = SA_RESTART;
-	sigemptyset(&sa->sa_mask);
+	sa->sa_handler = signal_handler; //Cuando recibas SIGUSR1, ejecuta el handler. El handler marca que el servidor mandó SIGUSR1.
+	sa->sa_flags = SA_RESTART; //Si una señal interrumpe una llamada del sistema, intenta reiniciarla. Es buena práctica.
+	sigemptyset(&sa->sa_mask);//Limpia el set de señales bloqueadas durante la ejecución del handler.
 	if (sigaction(SIGUSR1, sa, NULL) == -1)
 	{
 		write(2, "ERROR: sigaction failed\n", 24);
