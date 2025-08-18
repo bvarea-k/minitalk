@@ -69,10 +69,10 @@ int	main(void)
 	ft_putnbr(getpid());
 	write(1, "\n", 1);
 	sa.sa_sigaction = handler;
-	sa.sa_flags = SA_SIGINFO;
-	sigemptyset(&sa.sa_mask);
-	sigaddset(&sa.sa_mask, SIGUSR1);
-	sigaddset(&sa.sa_mask, SIGUSR2);
+	sa.sa_flags = SA_SIGINFO; //Activa el uso de sa_sigaction en vez de sa_handler.
+	sigemptyset(&sa.sa_mask); //Inicializa el conjunto de señales sa_mask.
+	sigaddset(&sa.sa_mask, SIGUSR1); //Añade señales que bloquear mientras se ejecuta handler,
+	sigaddset(&sa.sa_mask, SIGUSR2); //así no interrumpimos el handler.
 	if (sigaction(SIGUSR1, &sa, NULL) == -1)
 	{
 		write(2, "Error setting SIGUSR1 handler\n", 30);
