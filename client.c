@@ -15,6 +15,8 @@
 //Necesito variable global para que cambie en cualquier momento del programa.
 //Es volatile para indicar que puede cambiar de forma inesperada, para que el programa la lea cada vez que la use.
 //Es sig_atomic_t para garantizar que su lectura y escritura sean atómicas (no se corten por la mitad).
+//El cliente usa sa_handler y SA_RESTART, porque solo necesita saber si le llegó una señal para activar un flag.
+//El servidor usa sa_sigaction y SA_SIGINFO porque necesita saber quién le envió la señal.
 
 volatile sig_atomic_t	g_ack_received = 0;
 
