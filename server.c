@@ -14,24 +14,24 @@
 
 static void	handler(int sig, siginfo_t *info, void *context)
 {
-	static int				bit_nbr;
-	static unsigned char	c;
+	static int				bit_nbr; //contador de bits recibidos
+	static unsigned char	c; // carácter que estamos construyendo
 
 	(void)context;
-	c <<= 1;
+	c <<= 1; //Desplazo el carácter a la izquierda para añadir el siguiente bit.
 	if (sig == SIGUSR2)
 		c |= 1;
 	bit_nbr++;
 	if (bit_nbr == 8)
 	{
-		if (c == '\0')
+		if (c == '\0') //si es el final de la cadena, salto de línea.
 			write(1, "\n", 1);
 		else
-			write(1, &c, 1);
-		bit_nbr = 0;
+			write(1, &c, 1); //si no es el final, escribo el carácter.
+		bit_nbr = 0; //reiniciamos para el próximo bit.
 		c = 0;
 	}
-	kill(info->si_pid, SIGUSR1);
+	kill(info->si_pid, SIGUSR1); //Enviamos al cliente una señal de confirmación (SIGUSR1).
 }
 
 void	ft_putnbr(int n)
