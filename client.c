@@ -31,7 +31,7 @@ static void	signal_handler(int signum)
 //El cliente envía el mensaje bit a bit.
 //Si es 1, manda SIGUSR2 y, si es 0, manda SIGUSR1.
 //Después de cada señal, el cliente espera a recibir la confirmación (SIGUSR1)
-//de que el servidor ha procesado la señal.**
+//de que el servidor ha procesado la señal (el bit).**
 //La espera está limitada a 10,000 ciclos de espera con usleep(100)
 //para evitar que el cliente quede bloqueado indefinidamente.
 
@@ -64,12 +64,16 @@ static void	validate_argc(int num)
 	}
 }
 
+//Aquí configuramos qué va a pasar cuando el servidor mande SIGUSR1.
+
 static void	setup_sigaction(struct sigaction *sa)
 {
 	sa->sa_handler = signal_handler; //Cuando recibas SIGUSR1, ejecuta el handler. El handler marca que el servidor mandó SIGUSR1.
 	sa->sa_flags = SA_RESTART; //Si una señal interrumpe una llamada del sistema, intenta reiniciarla. Es buena práctica.
-	sigemptyset(&sa->sa_mask);//Limpia el set de señales bloqueadas durante la ejecución del handler.
-	if (sigaction(SIGUSR1, sa, NULL) == -1)
+	sigemptyset(&sa->sa_mask);//Limpia el set de señales bloqueadas durante la ejecución del handler. Así, recibes señales cuando termine.
+	if (sigaction(SIGUSR1, sa, NULL) == -1) //Esto es lo que une SIGUSR con too lo anterior. "cuando el cliente reciba SIGUSR1, 
+											//debe ejecutar el manejador que hemos configurado (signal_handler)."
+											//Podría estar fuera del if. Si algo sale mal (-1), mensaje de error.
 	{
 		write(2, "ERROR: sigaction failed\n", 24);
 		exit(EXIT_FAILURE);
@@ -101,11 +105,9 @@ int	main(int argc, char **argv)
   Este bucle está controlado por la variable global. Si no recibe la confirmación!!!! el contador wait
   se incrementa hasta 10000 intentos (para darle tieeeeeeeempo).
 		El servidor:
-  1. Espera recibir los bits del cliente. A medida que los va recibiendo, cuenta cuántos bits ha recibido (bit_nbr).
-  2. Procesa el carácter completo y lo imprime.
-  3. Envía SIGUSR1 al cliente.
-- Espera las señales SIGUSR1 y SIGUSR2.
-- Recibe los bits.
-- Cuando hay 8 bits (el caracter está completo), imprime.
-- Envía una señal de confirmación (SIGUSR1, o sea 0 en mi caso) al cliente con cada caracter.
+  1. Espera recibir los bits del cliente. A medida que los va recibiendo, cuenta cuántos bits ha recibido (bit_nbr)
+  y envía SIGUSR1 para pedir más.
+  2. Cuando hay 8 bits (el caracter está completo), imprime.
+  3. Envía SIGUSR1 al cliente (otra vez).
+
 */
