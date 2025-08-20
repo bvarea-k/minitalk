@@ -31,7 +31,7 @@ static void	handler(int sig, siginfo_t *info, void *context)
 		bit_nbr = 0; //reiniciamos para el próximo bit.
 		c = 0;
 	}
-	kill(info->si_pid, SIGUSR1); //Enviamos al cliente una señal de confirmación (SIGUSR1).
+	kill(info->si_pid, SIGUSR1); //Enviamos al cliente una señal de confirmación (SIGUSR1) tras cada bit.
 }
 
 void	ft_putnbr(int n)
